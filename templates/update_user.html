@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block body_block %}
+    <h2>Update InfoTable Data</h2>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <table class="table table-bordered border-2 w-50">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Amount</th>
+                <th>Remarks</th>
+            </tr>
+
+            {% if single_info %}
+                <!-- Single row edit -->
+                <tr>
+                    <td>{{ single_info.id }}</td>
+                    <td><input type="text" name="name" value="{{ single_info.name }}"></td>
+                    <td><input type="text" name="amount" value="{{ single_info.amount }}"></td>
+                    <td><input type="text" name="remarks" value="{{ single_info.remarks }}"></td>
+                </tr>
+            {% else %}
+                <!-- Bulk edit -->
+                {% for user in instances %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td><input type="text" name="name_{{ user.id }}" value="{{ user.name }}"></td>
+                        <td><input type="text" name="amount_{{ user.id }}" value="{{ user.amount }}"></td>
+                        <td><input type="text" name="remarks_{{ user.id }}" value="{{ user.remarks }}"></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">No records found.</td></tr>
+                {% endfor %}
+            {% endif %}
+        </table>
+        <br>
+        <input type="submit" value="Submit" class="btn btn-primary btn-sm">
+    </form>
+{% endblock %}

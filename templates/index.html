@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block body_block %}
+<h4>Table-1</h4>
+<table class="table table-bordered border-2 w-50">
+    <tr>
+        <th>Name:</th>
+        <th>Amount:</th>
+        <th>Remarks:</th>
+        <th>Edit</th>
+    </tr>
+    {% for info in info_list %}
+        <tr data-id="{{ info.id }}">
+            <td contenteditable="true">{{ info.name }}</td>
+            <td contenteditable="true">{{ info.amount }}</td>
+            <td contenteditable="true">{{ info.remarks }}</td>
+            <td>
+                <button class="btn btn-primary btn-sm update-btn">Update</button>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+
+<div id="message-box" style="margin-top:10px;"></div>
+<button id="update-all" class="btn btn-primary btn-sm">Update All</button>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Update single row
+$(document).on("click", ".update-btn", function(e) {
+    e.preventDefault();
+    let row = $(this).closest("tr");
+    let userId = row.data("id");
+    let name = row.find("td:eq(0)").text().trim();
+    if (!name) { alert("Name cannot be empty!"); return; }
+    let amount = row.find("td:eq(1)").text().trim();
+    let remarks = row.find("td:eq(2)").text().trim();
+
+    $.ajax({
+        url: "{% url 'u_table:update_single_user' 0 %}".replace("0", userId),
+        method: "POST",
+        data: {
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'name': name,
+            'amount': amount,
+            'remarks': remarks
+        },
+        success: function() {
+            row.css("background-color", "#d4edda");
+            $("#message-box").html('<div class="alert alert-success">Successfully updated!</div>');
+        },
+        error: function(xhr) {
+            $("#message-box").html('<div class="alert alert-danger">Error updating row: ' + xhr.responseText + '</div>');
+        }
+    });
+});
+
+// Update all rows
+$("#update-all").on("click", function(e) {
+    e.preventDefault();
+    let allData = [];
+
+    // Only select rows in Table-1
+    $("table:first tr[data-id]").each(function() {
+        let row = $(this);
+        let name = row.find("td:eq(0)").text().trim();
+        if (!name) return; // skip empty names
+        allData.push({
+            id: row.data("id"),
+            name: name,
+            amount: row.find("td:eq(1)").text().trim(),
+            remarks: row.find("td:eq(2)").text().trim()
+        });
+    });
+
+    $.ajax({
+        url: "{% url 'u_table:update_user' %}",
+        method: "POST",
+        contentType: "application/json",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" },
+        data: JSON.stringify(allData),
+        success: function() {
+            $("table:first tr[data-id]").css("background-color", "#d4edda");
+            $("#message-box").html('<div class="alert alert-success">Successfully updated this row!</div>');
+        },
+        error: function(xhr) {
+            $("#message-box").html('<div class="alert alert-danger">Error updating rows: ' + xhr.responseText + '</div>');
+        }
+    });
+});
+</script>
+
+<h4>Table-2</h4>
+<table class="table table-bordered border-2 w-50">
+    <tr>
+        <th>Name:</th>
+        <th>Updated Amount:</th>
+        <th>Remarks:</th>
+    </tr>
+    {% for updated_info in updated_info_list %}
+        <tr>
+            <td>{{ updated_info.name }}</td>
+            <td>{{ updated_info.updated_amount }}</td>
+            <td>{{ updated_info.remarks }}</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

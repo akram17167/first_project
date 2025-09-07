@@ -10,6 +10,7 @@ from u_table.models import InfoTable, UpdatedInfoTable
 
 
 def index(request):
+    # Test comment
     info_list = InfoTable.objects.order_by('name')
     updated_info_list = UpdatedInfoTable.objects.order_by('name')
     dict = {'info_list': info_list, 'updated_info_list': updated_info_list}
